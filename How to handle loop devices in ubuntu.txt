@@ -1,0 +1,107 @@
+virtual file systems loop
+
+we can use these loop as a sandbox the applications it will have necessary dependencies
+
+lsblk
+
+To list out the loop
+losetup -l
+
+
+
+
+To find the next available loop device
+losetup -f
+
+
+# Step 1: Create a 1GB backing file
+sudo dd if=/dev/zero of=/mnt/data/loopfile.img bs=1M count=1024
+
+# Step 2: Associate the backing file with a loop device
+sudo losetup /dev/loop10 /mnt/data/loopfile.img
+
+# Step 3: Format the loop device (optional)
+sudo mkfs.ext4 /dev/loop10
+
+# Step 4: Create a mount point and mount the loop device
+sudo mkdir -p /mnt/myloop
+sudo mount /dev/loop10 /mnt/myloop
+
+# Step 5: Verify the mount
+df -h | grep loop10
+
+Locate the Snap Package:
+ls /var/lib/snapd/snaps/
+
+Associate the Snap File with the Loop Device:
+sudo losetup /dev/loop10 /var/lib/snapd/snaps/<snap-package-name>.snap
+
+Mount the Loop Device:
+sudo mkdir -p /mnt/snap_mount
+sudo mount /dev/loop10 /mnt/snap_mount
+
+
+Verify the Mount:
+df -h | grep loop10
+
+
+
+To create a dir
+mkdir testloop
+
+creating a file in the dir
+touch testloop/myloop
+
+we can't mount something without providing a specific space
+
+Allocate specific amount space to the file
+fallocate -l 10G testloop/myloop
+
+Attaching available loop to the file
+sudo losetup /dev/loop17 testloop/myloop
+
+TO delete the loop device
+sudo losetup -d /dev/loop17
+
+
+lsblk
+
+to unmount 
+sudo dd if=/dev/zero of=/path/to/your/file.img bs=1M count=100
+
+
+Setting the default loop storage in Ubuntu typically involves configuring the loop device maximum size, which determines how large loop devices can be created by default. Here’s how you can adjust it:
+
+Edit the /etc/modprobe.d/loop.conf file (create it if it doesn't exist):
+
+bash
+Copy code
+sudo nano /etc/modprobe.d/loop.conf
+Add the following line to set the maximum size (adjust the size as per your requirements, e.g., 64GB):
+
+arduino
+Copy code
+options loop max_part=63 max_loop=64
+max_part= specifies the maximum number of partitions per loop device.
+max_loop= specifies the maximum number of loop devices.
+Adjust these values according to your needs. Save the file and exit the text editor.
+
+Apply the changes:
+
+Reload the loop module to apply the new settings:
+
+bash
+Copy code
+sudo rmmod loop
+sudo modprobe loop
+This unloads and reloads the loop module with the new configuration.
+
+Verify the changes:
+
+You can check the current settings using:
+
+bash
+Copy code
+cat /sys/module/loop/parameters/max_part
+cat /sys/module/loop/parameters/max_loop
+
